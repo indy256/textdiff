@@ -1,0 +1,66 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Text diff checks</title><pre id="results">Running…</pre><iframe id="app" src="../index.html" style="width:1200px;height:900px"></iframe><script src="../diff.js"></script><script>
+const checks = [];
+function check(name, condition) { checks.push(`${condition ? 'PASS' : 'FAIL'} ${name}`); }
+const compare = TextDiff.compare;
+check('empty texts', compare('', '').rows.length === 0);
+check('insertion', compare('a\nb', 'a\nx\nb').added === 1);
+check('deletion', compare('a\nx\nb', 'a\nb').removed === 1);
+check('replacement', compare('a', 'b').removed === 1 && compare('a', 'b').added === 1);
+check('case option', compare('HELLO', 'hello', {case:true}).added === 0);
+check('whitespace option', compare(' a  b ', 'ab', {whitespace:true}).added === 0);
+check('line endings', compare('a\r\nb', 'a\nb').added === 0);
+check('final newline', compare('a', 'a\n').added === 1);
+check('empty vs newline', compare('', '\n').added === 2);
+check('unicode', compare('Привет 🌍', 'Привет 🌎').added === 1);
+check('export', TextDiff.unified(compare('a\nb', 'a\nc').rows) === ' a\n-b\n+c');
+const large = compare(Array(2100).fill('a').join('\n'), Array(2100).fill('b').join('\n'));
+check('large comparison fallback', large.simplified && large.added === 2100 && large.removed === 2100);
+let seed = 13; const random = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) % 4);
+for (let t = 0; t < 100; t++) {
+  const a = Array.from({length:random()+3}, () => String(random())).join('\n');
+  const b = Array.from({length:random()+3}, () => String(random())).join('\n');
+  const rows = compare(a, b).rows;
+  if (rows.filter(r => r.old !== null).map(r => r.left).join('\n') !== a || rows.filter(r => r.new !== null).map(r => r.right).join('\n') !== b) throw new Error('Reconstruction failed');
+}
+check('100 reconstruction cases', true);
+document.getElementById('app').onload = async () => {
+  try {
+    const win = document.getElementById('app').contentWindow, doc = win.document, $ = id => doc.getElementById(id);
+    check('initial state', $('copy-diff').disabled && $('summary').textContent === 'Ready to compare');
+    $('example').click();
+    check('example comparison', $('summary').textContent === '2 removed · 3 added' && doc.querySelectorAll('mark').length === 4);
+    $('unified-view').click();
+    check('unified view', $('diff-output').classList.contains('unified') && $('column-headings').hidden);
+    $('swap').click();
+    check('swap', $('summary').textContent === '3 removed · 2 added');
+    $('original').value = '<img src=x onerror=alert(1)>';
+    $('changed').value = '<script>alert(1)<\/script>';
+    $('original').dispatchEvent(new win.Event('input'));
+    await new Promise(resolve => setTimeout(resolve, 250));
+    check('safe text rendering', !doc.querySelector('#diff-output img, #diff-output script') && $('diff-output').textContent.includes('<img'));
+    $('original').value = 'HELLO'; $('changed').value = 'hello'; $('ignore-case').click();
+    check('option updates results', $('summary').textContent === 'No differences found');
+    const transfer = new win.DataTransfer(); transfer.items.add(new win.File(['loaded text'], 'test.txt', {type:'text/plain'}));
+    const opened = new Promise(resolve => {
+      const observer = new win.MutationObserver(() => { if ($('toast').textContent === 'Opened test.txt') { observer.disconnect(); resolve(); } });
+      observer.observe($('toast'), {childList:true});
+    });
+    $('original-file').files = transfer.files; $('original-file').dispatchEvent(new win.Event('change'));
+    await opened;
+    check('file loading', $('original').value === 'loaded text');
+    $('original').value = Array(3100).fill('same').join('\n'); $('changed').value = $('original').value; $('side-view').click();
+    check('display limit', doc.querySelectorAll('.diff-row').length === 3000 && !$('limit-note').hidden);
+    $('clear').click();
+    check('clear', !$('original').value && !$('changed').value && $('download-diff').disabled);
+    $('example').click();
+    check('desktop has no horizontal overflow', doc.documentElement.scrollWidth <= doc.documentElement.clientWidth);
+    document.getElementById('app').style.width = '390px';
+    await new Promise(resolve => setTimeout(resolve, 100));
+    check('mobile has no horizontal overflow', doc.documentElement.scrollWidth <= doc.documentElement.clientWidth);
+    check('mobile editors stack', doc.querySelectorAll('.editor')[1].getBoundingClientRect().top > doc.querySelectorAll('.editor')[0].getBoundingClientRect().bottom);
+    if (!location.search.includes('mobile')) document.getElementById('app').style.width = '1200px';
+  } catch (error) { checks.push('FAIL ' + error.message); }
+  document.getElementById('results').textContent = checks.join('\n');
+  document.title = checks.some(c => c.startsWith('FAIL')) ? 'FAIL' : 'PASS';
+};
+</script></html>

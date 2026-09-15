@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f8fa">
+  <meta name="description" content="Compare two texts instantly. Highlight additions and removals, ignore case or whitespace, and export differences. Everything runs in your browser.">
+  <title>Text diff — Compare two texts</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%237460db'/%3E%3Cpath d='M10 13h20M10 20h8m8-4v8M22 20h8M10 27h20' stroke='white' stroke-width='2'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="diff.css">
+  <script src="diff.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="text" viewBox="0 0 24 24"><path d="M4 5h16M4 12h6M4 19h16m-3-10v6m-3-3h6"/></symbol>
+    <symbol id="shield" viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6zM8 12l3 3 5-6"/></symbol>
+    <symbol id="upload" viewBox="0 0 24 24"><path d="M12 16V3m-5 5 5-5 5 5M4 15v5h16v-5"/></symbol>
+    <symbol id="swap-icon" viewBox="0 0 24 24"><path d="M4 7h16l-4-4M20 17H4l4 4"/></symbol>
+    <symbol id="copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V3H3v13h5"/></symbol>
+    <symbol id="download" viewBox="0 0 24 24"><path d="M12 3v13m-5-5 5 5 5-5M4 17v4h16v-4"/></symbol>
+  </svg>
+  <header class="site-header">
+    <a class="brand" href="./"><span class="brand-mark"><svg><use href="#text"/></svg></span>Text diff<span class="brand-dot">.</span></a>
+    <span class="header-note"><span class="status-dot"></span>A little clarity in every change</span>
+    <span class="privacy-badge"><svg><use href="#shield"/></svg>Comparisons run in your browser</span>
+  </header>
+  <main>
+    <section class="intro">
+      <div class="eyebrow">SIMPLE. PRECISE. IN YOUR BROWSER.</div>
+      <h1>See what <span>changed.</span></h1>
+      <p>Compare two texts and find every addition and removal.<br>Paste your words. We’ll highlight the differences.</p>
+    </section>
+    <div class="workspace-toolbar"><span class="section-label">TWO TEXTS. ONE CLEAR COMPARISON.</span><div class="actions"><button class="text-button" id="example">Try an example</button><button class="button secondary" id="swap"><svg><use href="#swap-icon"/></svg>Swap texts</button><button class="text-button muted" id="clear">Clear all</button></div></div>
+    <div class="editor-grid">
+      <section class="card editor" data-side="original">
+        <div class="card-heading"><span class="feature-icon">−</span><div><h2><label for="original">Original text</label></h2><p>Your starting point.</p></div><button class="button secondary upload" data-for="original"><svg><use href="#upload"/></svg>Open file</button></div>
+        <textarea id="original" spellcheck="false" placeholder="Paste your original text here…" aria-describedby="original-count"></textarea>
+        <div class="editor-footer"><span id="original-count">0 lines · 0 characters</span><span>or drop a text file</span></div>
+        <input type="file" id="original-file" hidden accept="text/*,.txt,.csv,.tsv,.log,.md,.json,.js,.css,.html,.xml,.yaml,.yml">
+      </section>
+      <section class="card editor" data-side="changed">
+        <div class="card-heading"><span class="feature-icon">+</span><div><h2><label for="changed">Changed text</label></h2><p>The next version.</p></div><button class="button secondary upload" data-for="changed"><svg><use href="#upload"/></svg>Open file</button></div>
+        <textarea id="changed" spellcheck="false" placeholder="Paste your changed text here…" aria-describedby="changed-count"></textarea>
+        <div class="editor-footer"><span id="changed-count">0 lines · 0 characters</span><span>or drop a text file</span></div>
+        <input type="file" id="changed-file" hidden accept="text/*,.txt,.csv,.tsv,.log,.md,.json,.js,.css,.html,.xml,.yaml,.yml">
+      </section>
+    </div>
+    <div class="options"><div class="checks"><span class="section-label">OPTIONS</span><label><input type="checkbox" id="ignore-space">Ignore whitespace</label><label><input type="checkbox" id="ignore-case">Ignore case</label></div><span class="live-badge"><span class="status-dot"></span>Updates as you type</span></div>
+    <section class="card comparison" aria-labelledby="diff-heading">
+      <div class="comparison-heading"><div class="result-title"><h2 id="diff-heading">The difference</h2><span id="summary" role="status">Ready to compare</span></div><div class="view-toggle" aria-label="Comparison view"><button id="side-view" class="selected" aria-pressed="true">Side by side</button><button id="unified-view" aria-pressed="false">Unified</button></div></div>
+      <div class="diff-column-headings" id="column-headings"><span>ORIGINAL</span><span>CHANGED</span></div>
+      <div id="diff-output" tabindex="0" aria-label="Text differences"><div class="empty-state"><span class="feature-icon"><svg><use href="#text"/></svg></span><h3>A fresh pair of eyes for your text.</h3><p>Paste text above or try an example to see what changed.</p></div></div>
+      <p id="limit-note" hidden></p>
+      <div class="comparison-footer"><div class="legend"><span class="removed-key">− Removed</span><span class="added-key">+ Added</span></div><div class="actions"><button id="copy-diff" class="button secondary" disabled><svg><use href="#copy"/></svg>Copy diff</button><button id="download-diff" class="button primary" disabled><svg><use href="#download"/></svg>Download diff</button></div></div>
+    </section>
+    <section class="learn-grid">
+      <article><span class="feature-icon"><svg><use href="#text"/></svg></span><h2>Small edits. Clearly visible.</h2><p>Compare drafts, code, notes, or configuration files. Removed lines appear in red, added lines in green, and edits within a changed line get a stronger highlight.</p><details><summary>How do the comparison options work?</summary><p>Ignore whitespace treats spacing and indentation differences as equal. Ignore case treats uppercase and lowercase letters as equal. Line breaks still matter. Windows and Unix line endings are treated alike.</p></details></article>
+      <article><h2>A view for every comparison</h2><p>Use side by side to read both versions together. Switch to unified for a single list, with − for removed lines and + for additions.</p><details><summary>Can I compare files and save the result?</summary><p>Open or drop a plain text file up to 2 MB in either panel. Word, PDF, and spreadsheet documents must first be exported as text. Copy or download saves all compared lines with change prefixes, including lines beyond the display limit.</p></details></article>
+    </section>
+    <div class="privacy-note"><svg><use href="#shield"/></svg>No uploads. No accounts. Just your text.</div>
+  </main>
+  <footer class="site-footer"><span>Text diff · A simple tool for everyday development</span><span>Made for the details.</span></footer>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <noscript>This tool needs JavaScript enabled to compare text locally.</noscript>
+</body>
+</html>

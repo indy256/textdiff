@@ -1,0 +1,5 @@
+# Local browser verification artifacts
+.browser-*/
+browser-*.txt
+desktop-check.png
+mobile-check.png
